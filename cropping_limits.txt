@@ -1,0 +1,2 @@
+ARUCO1 : image_cropped1 = image[500:900,250:850]                 
+	 image_cropped2 = image[500:900,800:1500]
