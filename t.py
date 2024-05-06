@@ -1,78 +1,14 @@
-import time
-import cv2
+import cv2 
 import numpy as np
-from math import *
-
-thecase = 0
-
-case1_ul = 35
-case2_ul = 125
-case3_ul = -145
-case4_ul = -35
-
-def findArucoMarkers(img, scale_percent, markerSize = 4, totalMarkers = 250, draw = True):
-    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
-    parameters = cv2.aruco.DetectorParameters()
-    detector = cv2.aruco.ArucoDetector(dictionary,parameters)
-    markerCorners, markerIds, rejectedCandidates = detector.detectMarkers(img)
-    return[markerCorners, markerIds]
-
-
-# read from camera with open cv 
-cap = cv2.VideoCapture(0)
-while True:
-    ret, image = cap.read()
-    cv2.imshow("image", image)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+url = 'http://192.168.68.102:8080/video'
+cap = cv2.VideoCapture(url)
+while(True):
+    ret, frame = cap.read()
+    # save img 
+    cv2.imwrite('image.jpg', frame)
+    if frame is not None:
+        cv2.imshow('frame',frame)
+    q = cv2.waitKey(1)
+    if q == ord("q"):
         break
-    time.sleep(0.1)
-
-
-    arucoBoxes, ids = findArucoMarkers(image,scale_percent = 40)
-
-    if ids is None:
-        print('no aruco found')
-        continue
-    
-
-    arucoboxes47 = []
-
-    for i in range (len(ids)):
-        if ids[i] == 47:
-            arucoboxes47.append(arucoBoxes[i]) 
-    print('Nombre arucobox47 = ', arucoboxes47)
-    arucoBoxes = sorted(arucoboxes47, key=lambda x:x[0][0][0])
-
-    if ids is not None :
-        nbr_detected = len(arucoBoxes)
-        Q = 0
-        for i in range(nbr_detected):
-            Q = Q+1
-            print("QR code "+str(Q)+" : ")
-            V_y = (((arucoBoxes[i])[0])[3])[1]-(((arucoBoxes[i])[0])[0])[1]
-            V_x = (((arucoBoxes[i])[0])[3])[0]-(((arucoBoxes[i])[0])[0])[0]
-
-            Norm_V = sqrt(pow(V_x,2)+pow(V_y,2))
-
-            theta = acos(-V_y/Norm_V)
-
-            if (((arucoBoxes[i])[0])[0])[0] > (((arucoBoxes[i])[0])[3])[0]:
-                theta=-theta
-            theta = np.rad2deg(theta)
-            print("angle:"+ str(theta))
-
-            if theta <= case1_ul and theta >= case4_ul:
-                thecase=1
-                print('cas 1 point pour aucune équipe')
-            elif theta > case1_ul and theta <= case2_ul:
-                thecase=2
-                print('cas 2 point pour les bleus')
-            elif theta > case2_ul or theta <= case3_ul:
-                thecase=3
-                print('cas = 3 point pour les 2 équipes')
-            else:
-                thecase=4
-                print('cas 4 point pour les jaunes')
-    else :
-        print("no aruco found")
-
+cv2.destroyAllWindows()
